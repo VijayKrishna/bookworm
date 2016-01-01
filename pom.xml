@@ -39,7 +39,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <version>1.4.0</version>
             <configuration>
-              <mainClass>self.vpalepu.bookworm</mainClass>
+              <mainClass>self.vpalepu.bookworm.BookWorm</mainClass>
             </configuration>
           </plugin>
         </plugins>

@@ -19,12 +19,16 @@ import org.jsoup.select.Elements;
  */
 public class BookWorm {
     public static void main( String[] args ) {
+      final String targetUrl = stripTrailingSlash(getArgument("worm.page"));
+      final String downloadStore = getArgument("worm.downloads");
+      final String extensionRegEx = getArgument("worm.extn");
       
       try {
-        final String targetUrl = stripTrailingSlash(System.getProperty("worm.page"));
-        final String downloadStore = System.getProperty("worm.downloads");
+        
         Document doc = Jsoup.connect(targetUrl).get();
         Elements links = doc.getElementsByTag("a");
+        final int linkCount = links.size();
+        int count = 1;
         for(Element link : links) {
           final String href = link.attr("href");
           String fullHref;
@@ -37,11 +41,22 @@ public class BookWorm {
           } else {
             fullHref = href;
           }
-          downloadFile(fullHref, createDownloadStore(downloadStore), System.getProperty("worm.extn"));
+          downloadFile(fullHref, createDownloadStore(downloadStore), 
+              extensionRegEx, count,  linkCount);
+          count += 1;
         }
       } catch (IOException e) {
         e.printStackTrace();
       }
+    }
+    
+    public static String getArgument(final String argName) {
+      final String argValue = System.getProperty(argName);
+      if(argValue == null) {
+        System.err.println("Provide the following argument: -D" + argName);
+        System.exit(1);
+      }
+      return argValue;
     }
     
     public static String createDownloadStore(final String downloadStoreName) {
@@ -58,10 +73,13 @@ public class BookWorm {
     }
     
     public static void downloadFile(final String urlString, 
-        final String downloadStoreName, final String extension) {
+        final String downloadStoreName, final String extension, 
+        final int ith, final int total) {
+      
+      final String countStatus = ith + "/" + total; 
       
       if(urlString == null || !urlString.matches(extension)) {
-        System.out.println("!!! Skipping dowload for: " + urlString);
+        System.out.println(countStatus + "!!! Skipping dowload: " + urlString);
         return;
       }
       
@@ -73,9 +91,9 @@ public class BookWorm {
         Files.copy(in, Paths.get(downloadStoreName + "/" + fileName), 
             StandardCopyOption.REPLACE_EXISTING);
         in.close();
-        System.out.println("... Downloaded: " + urlString);
+        System.out.println(countStatus + "... Downloaded: " + urlString);
       } catch (IOException e) {
-        System.out.println("!!! Error while downloading: " + urlString);
+        System.out.println(countStatus + "!!! Error while downloading: " + urlString);
         e.printStackTrace();
       }
       
