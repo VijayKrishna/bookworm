@@ -10,7 +10,7 @@ Two typical use-cases for this utility are:
 
 #### Why the name "bookworm"?
 Because the original intent of this project was to basically dig 
-through and fetch reading materiallike lecture notes or research
+through and fetch reading material like lecture notes or research
 papers from a given webpage. 
 And so bookworm made a certain amount of sense.
 However, I realize (and admit) that the "worm" metaphor does not make sense with the
@@ -30,3 +30,13 @@ mvn exec:java -Pbookworm -Dworm.page=<webpage to be parsed for HREFs>\
 -Dworm.downloads=<path to downloads directory>\
 -Dworm.extn=<reg-ex of the downloadable file-extensions>
 ```
+
+## Contributions/Contact
+
+Open an issue for getting in touch with me about  bugs, design ideas or feature requests.
+And I am also open to pull requests that are preceeded by an open issue in this project (one that you likely opened).
+
+I am also available via email at vpalepu [at] uci [dot] edu.  
+
+## License
+The code in this project is licensed under the MIT License. Check the file named "LICENSE" for more details.
