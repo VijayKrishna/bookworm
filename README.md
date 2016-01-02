@@ -23,7 +23,9 @@ I would probably want to redo this in a scripting language, but this works for m
 ## Download, Build and Usage Instructions
 
 Download: `git clone https://github.com/VijayKrishna/bookworm.git && cd bookworm`
+
 Building: Download and use Maven to build this project with the following command: `mvn compile`
+
 Usage: 
 ```
 mvn exec:java -Pbookworm -Dworm.page=<webpage to be parsed for HREFs>\
