@@ -28,7 +28,7 @@ Usage:
 ```
 mvn exec:java -Pbookworm -Dworm.page=<webpage to be parsed for HREFs>\
 -Dworm.downloads=<path to downloads directory>\
--Dworm.extn=<reg-ex of the downloadable file-extensions>
+-Dworm.extn=<wildcard of the downloadable file-extensions>
 ```
 
 ## Contributions/Contact

@@ -23,12 +23,15 @@ public class BookWorm {
       
       try {
         final String targetUrl = stripTrailingSlash(getArgument("worm.page"));
+        System.out.println("Fetching html-content from URL:" + targetUrl);
         Document doc = Jsoup.connect(targetUrl).get();
         Elements links = doc.getElementsByTag("a");
         
-        final String extensionRegEx = getArgument("worm.extn");
+        final String extensionWildCard = getArgument("worm.extn");
+        final String extensionRegEx = convertWildcardToRegex(extensionWildCard);
         ArrayList<String> fullHrefs = new ArrayList<>();
         
+        System.out.println("Parsing HREFs within html-content");
         for(Element link : links) {
           final String href = link.attr("href");
           if(href == null || href.isEmpty()) {
@@ -41,18 +44,28 @@ public class BookWorm {
           }
         }
         
-        int count = 1;
         final int linkCount = fullHrefs.size();
-        final String downloadStore = createDownloadStore(getArgument("worm.downloads"));
-        for(String fullHref : fullHrefs) {
-          downloadFile(fullHref, downloadStore, count, linkCount);
-          count += 1;
-        }
+        final String downloadStore = 
+            createDownloadStore(getArgument("worm.downloads"));
+        System.out.format("Found %d HREFs with the wildcard search: '%s'.\n",
+            linkCount, extensionWildCard);
         
+        if(linkCount > 0) {
+          System.out.format("Storing downloads at %s\n", downloadStore);
+          int count = 1;
+          for(String fullHref : fullHrefs) {
+            downloadFile(fullHref, downloadStore, count, linkCount);
+            count += 1;
+          }
+        }
         
       } catch (IOException e) {
         e.printStackTrace();
       }
+    }
+    
+    public static String convertWildcardToRegex(final String input) {
+      return input == null ? null : input.replace("*", ".*").replace("?", ".");
     }
 
     /**
@@ -107,13 +120,9 @@ public class BookWorm {
     
     public static void downloadFile(final String urlString, 
         final String downloadStoreName, final int ith, final int total) {
-      
-      final String countStatus = ith + "/" + total; 
-      
-      
-      
       String[] split = urlString.split("/");
       String fileName = split[split.length - 1];
+      final String countStatus = ith + "/" + total;
       try {
         URL url = new URL(urlString);
         InputStream in = url.openStream();
@@ -122,11 +131,9 @@ public class BookWorm {
         in.close();
         System.out.println(countStatus + "... Downloaded: " + urlString);
       } catch (IOException e) {
-        System.out.println(countStatus + "!!! Error while downloading: " + urlString);
+        System.out.println(countStatus + "!!! Error in Download: " + urlString);
         e.printStackTrace();
       }
-      
-      
     }
     
     public static String stripTrailingSlash(final String in) {
