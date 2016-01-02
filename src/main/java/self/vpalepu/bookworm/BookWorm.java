@@ -7,6 +7,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,35 +20,58 @@ import org.jsoup.select.Elements;
  */
 public class BookWorm {
     public static void main( String[] args ) {
-      final String targetUrl = stripTrailingSlash(getArgument("worm.page"));
-      final String downloadStore = getArgument("worm.downloads");
-      final String extensionRegEx = getArgument("worm.extn");
       
       try {
-        
+        final String targetUrl = stripTrailingSlash(getArgument("worm.page"));
         Document doc = Jsoup.connect(targetUrl).get();
         Elements links = doc.getElementsByTag("a");
-        final int linkCount = links.size();
-        int count = 1;
+        
+        final String extensionRegEx = getArgument("worm.extn");
+        ArrayList<String> fullHrefs = new ArrayList<>();
+        
         for(Element link : links) {
           final String href = link.attr("href");
-          String fullHref;
-          if(!href.startsWith(targetUrl)) {
-            if(href.startsWith("/") || href.startsWith("#")) {
-              fullHref = targetUrl + href;
-            } else {
-              fullHref = targetUrl + '/' + href;
-            }
-          } else {
-            fullHref = href;
+          if(href == null || href.isEmpty()) {
+            continue;
           }
-          downloadFile(fullHref, createDownloadStore(downloadStore), 
-              extensionRegEx, count,  linkCount);
+          
+          final String fullHref = expandHref(targetUrl, href);
+          if(shouldDownload(fullHref, extensionRegEx)) {
+            fullHrefs.add(fullHref);
+          }
+        }
+        
+        int count = 1;
+        final int linkCount = fullHrefs.size();
+        final String downloadStore = createDownloadStore(getArgument("worm.downloads"));
+        for(String fullHref : fullHrefs) {
+          downloadFile(fullHref, downloadStore, count, linkCount);
           count += 1;
         }
+        
+        
       } catch (IOException e) {
         e.printStackTrace();
       }
+    }
+
+    /**
+     * @param targetUrl
+     * @param href
+     * @return
+     */
+    public static String expandHref(final String targetUrl, final String href) {
+      String fullHref;
+      if(!href.startsWith(targetUrl)) {
+        if(href.startsWith("/") || href.startsWith("#")) {
+          fullHref = targetUrl + href;
+        } else {
+          fullHref = targetUrl + '/' + href;
+        }
+      } else {
+        fullHref = href;
+      }
+      return fullHref;
     }
     
     public static String getArgument(final String argName) {
@@ -72,16 +96,21 @@ public class BookWorm {
       return stripTrailingSlash(downloadStoreName);
     }
     
+    public static boolean shouldDownload(final String urlString, 
+        final String extension) {
+      if(urlString == null || !urlString.matches(extension)) {
+        return false;
+      }
+      
+      return true;
+    }
+    
     public static void downloadFile(final String urlString, 
-        final String downloadStoreName, final String extension, 
-        final int ith, final int total) {
+        final String downloadStoreName, final int ith, final int total) {
       
       final String countStatus = ith + "/" + total; 
       
-      if(urlString == null || !urlString.matches(extension)) {
-        System.out.println(countStatus + "!!! Skipping dowload: " + urlString);
-        return;
-      }
+      
       
       String[] split = urlString.split("/");
       String fileName = split[split.length - 1];
